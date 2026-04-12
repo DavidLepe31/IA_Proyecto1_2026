@@ -1,0 +1,186 @@
+{
+  "dataset": "bitext_dataset.csv",
+  "k_folds": 5,
+  "total_records": 22924,
+  "num_categories": 8,
+  "categories": [
+    "ACCOUNT",
+    "CONTACT",
+    "DELIVERY",
+    "FEEDBACK",
+    "ORDER",
+    "PAYMENT",
+    "REFUND",
+    "SHIPPING"
+  ],
+  "avg_accuracy": 0.991,
+  "std_accuracy": 0.0023,
+  "avg_macro_f1": 0.9894,
+  "std_macro_f1": 0.0026,
+  "fold_accuracies": [
+    0.9873,
+    0.9937,
+    0.9906,
+    0.9904,
+    0.9932
+  ],
+  "fold_macro_f1s": [
+    0.9849,
+    0.992,
+    0.9896,
+    0.9885,
+    0.9919
+  ],
+  "global_metrics": {
+    "confusion_matrix": {
+      "ACCOUNT": {
+        "ACCOUNT": 5975,
+        "CONTACT": 1,
+        "DELIVERY": 0,
+        "FEEDBACK": 0,
+        "ORDER": 1,
+        "PAYMENT": 9,
+        "REFUND": 0,
+        "SHIPPING": 0
+      },
+      "CONTACT": {
+        "ACCOUNT": 0,
+        "CONTACT": 1994,
+        "DELIVERY": 0,
+        "FEEDBACK": 3,
+        "ORDER": 2,
+        "PAYMENT": 0,
+        "REFUND": 0,
+        "SHIPPING": 0
+      },
+      "DELIVERY": {
+        "ACCOUNT": 0,
+        "CONTACT": 0,
+        "DELIVERY": 1851,
+        "FEEDBACK": 0,
+        "ORDER": 84,
+        "PAYMENT": 0,
+        "REFUND": 0,
+        "SHIPPING": 59
+      },
+      "FEEDBACK": {
+        "ACCOUNT": 0,
+        "CONTACT": 0,
+        "DELIVERY": 0,
+        "FEEDBACK": 1995,
+        "ORDER": 1,
+        "PAYMENT": 0,
+        "REFUND": 0,
+        "SHIPPING": 1
+      },
+      "ORDER": {
+        "ACCOUNT": 3,
+        "CONTACT": 0,
+        "DELIVERY": 14,
+        "FEEDBACK": 1,
+        "ORDER": 3964,
+        "PAYMENT": 0,
+        "REFUND": 2,
+        "SHIPPING": 4
+      },
+      "PAYMENT": {
+        "ACCOUNT": 3,
+        "CONTACT": 0,
+        "DELIVERY": 2,
+        "FEEDBACK": 0,
+        "ORDER": 0,
+        "PAYMENT": 1993,
+        "REFUND": 0,
+        "SHIPPING": 0
+      },
+      "REFUND": {
+        "ACCOUNT": 0,
+        "CONTACT": 0,
+        "DELIVERY": 11,
+        "FEEDBACK": 0,
+        "ORDER": 1,
+        "PAYMENT": 0,
+        "REFUND": 2980,
+        "SHIPPING": 0
+      },
+      "SHIPPING": {
+        "ACCOUNT": 2,
+        "CONTACT": 0,
+        "DELIVERY": 0,
+        "FEEDBACK": 0,
+        "ORDER": 1,
+        "PAYMENT": 0,
+        "REFUND": 0,
+        "SHIPPING": 1967
+      }
+    },
+    "per_class": {
+      "ACCOUNT": {
+        "precision": 0.9987,
+        "recall": 0.9982,
+        "f1": 0.9984,
+        "tp": 5975,
+        "fp": 8,
+        "fn": 11
+      },
+      "CONTACT": {
+        "precision": 0.9995,
+        "recall": 0.9975,
+        "f1": 0.9985,
+        "tp": 1994,
+        "fp": 1,
+        "fn": 5
+      },
+      "DELIVERY": {
+        "precision": 0.9856,
+        "recall": 0.9283,
+        "f1": 0.9561,
+        "tp": 1851,
+        "fp": 27,
+        "fn": 143
+      },
+      "FEEDBACK": {
+        "precision": 0.998,
+        "recall": 0.999,
+        "f1": 0.9985,
+        "tp": 1995,
+        "fp": 4,
+        "fn": 2
+      },
+      "ORDER": {
+        "precision": 0.9778,
+        "recall": 0.994,
+        "f1": 0.9858,
+        "tp": 3964,
+        "fp": 90,
+        "fn": 24
+      },
+      "PAYMENT": {
+        "precision": 0.9955,
+        "recall": 0.9975,
+        "f1": 0.9965,
+        "tp": 1993,
+        "fp": 9,
+        "fn": 5
+      },
+      "REFUND": {
+        "precision": 0.9993,
+        "recall": 0.996,
+        "f1": 0.9977,
+        "tp": 2980,
+        "fp": 2,
+        "fn": 12
+      },
+      "SHIPPING": {
+        "precision": 0.9685,
+        "recall": 0.9985,
+        "f1": 0.9833,
+        "tp": 1967,
+        "fp": 64,
+        "fn": 3
+      }
+    },
+    "accuracy": 0.9911,
+    "macro_f1": 0.9893
+  }
+}

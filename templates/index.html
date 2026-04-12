@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HelpDesk AI — Sistema de Tickets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+
+<style>
+/* ════════════════════════════════════════════
+   VARIABLES
+════════════════════════════════════════════ */
+:root {
+  --bg:          #080c17;
+  --surface:     #0f1724;
+  --surface2:    #161f30;
+  --surface3:    #1c2840;
+  --border:      #1e2d45;
+  --border2:     #243550;
+
+  --accent:      #00c8f0;
+  --accent-dim:  rgba(0,200,240,0.12);
+  --accent-glow: rgba(0,200,240,0.25);
+  --purple:      #8b5cf6;
+  --green:       #10b981;
+  --yellow:      #f59e0b;
+  --red:         #ef4444;
+  --orange:      #f97316;
+  --pink:        #ec4899;
+  --sky:         #38bdf8;
+  --teal:        #2dd4bf;
+  --indigo:      #6366f1;
+  --rose:        #f43f5e;
+
+  --text:        #dde6f0;
+  --text-2:      #94a3b8;
+  --text-3:      #4a5f78;
+
+  --mono:        'Space Mono', monospace;
+  --sans:        'DM Sans', sans-serif;
+  --radius:      12px;
+  --radius-sm:   8px;
+}
+
+/* ════════════════════════════════════════════
+   RESET & BASE
+════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--sans);
+  background:  var(--bg);
+  color:       var(--text);
+  min-height:  100vh;
+  line-height: 1.6;
+  overflow-x:  hidden;
+}
+
+/* Dot-grid background */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background-image: radial-gradient(circle, rgba(0,200,240,0.07) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+}
+
+/* Ambient glow top-left */
+body::after {
+  content: '';
+  position: fixed; top: -200px; left: -200px;
+  width: 600px; height: 600px; z-index: 0;
+  background: radial-gradient(circle, rgba(0,200,240,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ════════════════════════════════════════════
+   LAYOUT
+════════════════════════════════════════════ */
+.app {
+  position: relative; z-index: 1;
+  max-width: 1260px; margin: 0 auto; padding: 0 28px;
+}
+
+/* ════════════════════════════════════════════
+   HEADER
+════════════════════════════════════════════ */
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 30px 0 26px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 36px;
+}
+
+.logo-wrap { display: flex; align-items: center; gap: 16px; }
+
+.logo-icon {
+  width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--purple) 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 0 24px rgba(0,200,240,0.3);
+}
+
+.logo-title {
+  font-family: var(--mono);
+  font-size: 20px; font-weight: 700;
+  letter-spacing: -0.5px;
+}
+.logo-title em { color: var(--accent); font-style: normal; }
+
+.logo-sub {
+  font-size: 11px; color: var(--text-2);
+  font-family: var(--mono); letter-spacing: 0.3px;
+  margin-top: 2px;
+}
+
+.header-badges { display: flex; align-items: center; gap: 10px; }
+
+.badge {
+  display: flex; align-items: center; gap: 7px;
+  font-family: var(--mono); font-size: 10px;
+  color: var(--text-2); letter-spacing: 0.5px;
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 6px 13px; border-radius: 20px;
+}
+
+.badge-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green);
+  animation: blink 2s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1;box-shadow:0 0 6px var(--green)} 50%{opacity:.4;box-shadow:none} }
+
+/* ════════════════════════════════════════════
+   MAIN GRID
+════════════════════════════════════════════ */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 390px;
+  gap: 24px;
+  align-items: start;
+}
+@media(max-width:920px){ .main-grid { grid-template-columns: 1fr; } }
+
+/* ════════════════════════════════════════════
+   CARDS
+════════════════════════════════════════════ */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 26px;
+}
+
+.card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 22px;
+}
+
+.card-label {
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--text-3);
+}
+.card-label span { color: var(--accent); }
+
+.card-tag {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--text-3); background: var(--surface2);
+  border: 1px solid var(--border); padding: 4px 10px;
+  border-radius: 6px; letter-spacing: .3px;
+}
+
+/* ════════════════════════════════════════════
+   FORM ELEMENTS
+════════════════════════════════════════════ */
+.field { margin-bottom: 16px; }
+
+.field-label {
+  display: block; font-size: 11px; font-family: var(--mono);
+  color: var(--text-3); letter-spacing: 1px; text-transform: uppercase;
+  margin-bottom: 7px;
+}
+
+.tid-row { display: flex; align-items: center; gap: 9px; margin-bottom: 18px; }
+
+.tid-display {
+  flex: 1; font-family: var(--mono); font-size: 13px; color: var(--accent);
+  background: var(--accent-dim); border: 1px solid rgba(0,200,240,.25);
+  padding: 9px 15px; border-radius: var(--radius-sm);
+  letter-spacing: 1px;
+}
+
+.icon-btn {
+  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text-3); border-radius: var(--radius-sm);
+  cursor: pointer; font-size: 16px;
+  transition: color .2s, border-color .2s, background .2s;
+}
+.icon-btn:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+
+input[type="text"],
+textarea {
+  width: 100%; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--text); font-family: var(--sans); font-size: 14px;
+  padding: 11px 15px; outline: none; resize: vertical;
+  transition: border-color .2s, box-shadow .2s;
+}
+input[type="text"]:focus,
+textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+input::placeholder, textarea::placeholder { color: var(--text-3); }
+textarea { min-height: 118px; line-height: 1.65; }
+
+.char-hint {
+  text-align: right; font-size: 10px; font-family: var(--mono);
+  color: var(--text-3); margin-top: 4px;
+}
+
+/* ════════════════════════════════════════════
+   SUBMIT BUTTON
+════════════════════════════════════════════ */
+.submit-btn {
+  width: 100%; padding: 14px;
+  background: linear-gradient(135deg, var(--accent) 0%, #0088bb 100%);
+  color: #020c1a; font-family: var(--mono); font-weight: 700;
+  font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase;
+  border: none; border-radius: var(--radius-sm);
+  cursor: pointer; margin-top: 8px;
+  transition: transform .2s, box-shadow .2s, opacity .2s;
+  position: relative; overflow: hidden;
+}
+.submit-btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.15) 0%, transparent 60%);
+}
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0,200,240,.35);
+}
+.submit-btn:active { transform: translateY(0); }
+.submit-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+.submit-btn.loading .btn-text   { display: none; }
+.submit-btn.loading .btn-loader { display: flex; justify-content: center; align-items: center; gap: 6px; }
+.btn-loader {
+  display: none;
+}
+.dot-pulse {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: rgba(0,0,0,.4);
+  animation: dotPulse 1.2s ease-in-out infinite;
+}
+.dot-pulse:nth-child(2) { animation-delay: .2s; }
+.dot-pulse:nth-child(3) { animation-delay: .4s; }
+@keyframes dotPulse { 0%,80%,100%{transform:scale(.8);opacity:.4} 40%{transform:scale(1.2);opacity:1} }
+
+/* ════════════════════════════════════════════
+   ERROR
+════════════════════════════════════════════ */
+.error-box {
+  display: none; margin-top: 12px;
+  padding: 11px 15px; border-radius: var(--radius-sm);
+  background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.3);
+  color: #fca5a5; font-size: 12px; font-family: var(--mono);
+}
+
+/* ════════════════════════════════════════════
+   RESULT PANEL
+════════════════════════════════════════════ */
+.result-panel {
+  display: none; margin-top: 22px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+  animation: fadeUp .35s ease;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.result-top {
+  padding: 18px 22px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+
+.result-cat-wrap { display: flex; align-items: center; gap: 13px; }
+
+.result-cat-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; font-size: 20px;
+}
+
+.result-cat-name {
+  font-family: var(--mono); font-size: 16px; font-weight: 700;
+  letter-spacing: .3px;
+}
+.result-cat-sub { font-size: 11px; color: var(--text-2); margin-top: 2px; }
+
+.conf-chip {
+  font-family: var(--mono); font-size: 11px;
+  padding: 5px 12px; border-radius: 20px;
+  background: rgba(16,185,129,.1); color: var(--green);
+  border: 1px solid rgba(16,185,129,.25);
+  letter-spacing: .5px;
+}
+
+.result-body { padding: 20px 22px; }
+
+.prob-section-title {
+  font-size: 10px; font-family: var(--mono); color: var(--text-3);
+  letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 12px;
+}
+
+.prob-list { display: flex; flex-direction: column; gap: 9px; }
+
+.prob-row { display: flex; align-items: center; gap: 10px; }
+
+.prob-name {
+  font-size: 11px; font-family: var(--mono); color: var(--text-2);
+  width: 160px; flex-shrink: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.prob-track {
+  flex: 1; height: 5px; background: var(--surface3);
+  border-radius: 3px; overflow: hidden;
+}
+.prob-fill {
+  height: 100%; border-radius: 3px;
+  transition: width .7s cubic-bezier(.34,1.56,.64,1);
+  width: 0;
+}
+
+.prob-pct {
+  font-family: var(--mono); font-size: 11px;
+  color: var(--text-3); width: 40px; text-align: right;
+}
+
+.result-footer {
+  margin-top: 16px; padding-top: 14px;
+  border-top: 1px solid var(--border);
+  display: flex; flex-wrap: wrap; gap: 18px;
+}
+.result-footer-item {
+  font-size: 11px; font-family: var(--mono); color: var(--text-3);
+}
+.result-footer-item b { color: var(--text); }
+
+/* ════════════════════════════════════════════
+   SIDEBAR — CATEGORIES
+════════════════════════════════════════════ */
+.sidebar { display: flex; flex-direction: column; gap: 20px; }
+
+.cat-grid { display: flex; flex-direction: column; gap: 7px; }
+
+.cat-row {
+  display: flex; align-items: center; gap: 11px;
+  padding: 9px 13px; border-radius: var(--radius-sm);
+  background: var(--surface2); border: 1px solid var(--border);
+  cursor: default; transition: border-color .2s;
+}
+.cat-row:hover { border-color: var(--border2); }
+
+.cat-pip { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+.cat-data { flex: 1; min-width: 0; }
+.cat-name-lbl { font-size: 12px; font-weight: 600; margin-bottom: 1px; }
+.cat-desc-lbl { font-size: 10px; color: var(--text-3); line-height: 1.35; }
+
+/* ════════════════════════════════════════════
+   SIDEBAR — METRICS
+════════════════════════════════════════════ */
+.metrics-2x2 { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+
+.metric-tile {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 14px 12px; text-align: center;
+}
+.metric-num {
+  font-family: var(--mono); font-size: 22px; font-weight: 700;
+  color: var(--accent); margin-bottom: 3px; letter-spacing: -1px;
+}
+.metric-name {
+  font-size: 9px; font-family: var(--mono); color: var(--text-3);
+  letter-spacing: 1px; text-transform: uppercase;
+}
+
+/* ════════════════════════════════════════════
+   SIDEBAR — HISTORY
+════════════════════════════════════════════ */
+.history-scroll {
+  display: flex; flex-direction: column; gap: 7px;
+  max-height: 300px; overflow-y: auto;
+  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+}
+.history-scroll::-webkit-scrollbar { width: 4px; }
+.history-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.h-item {
+  padding: 10px 13px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  cursor: pointer; transition: border-color .2s;
+  animation: fadeUp .3s ease;
+}
+.h-item:hover { border-color: var(--accent); }
+
+.h-top {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 5px;
+}
+.h-id    { font-family: var(--mono); font-size: 11px; color: var(--accent); }
+.h-cat   {
+  font-size: 9px; font-family: var(--mono); font-weight: 700;
+  padding: 2px 8px; border-radius: 4px; letter-spacing: .5px;
+}
+.h-text  {
+  font-size: 11px; color: var(--text-3);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.empty-state {
+  text-align: center; color: var(--text-3);
+  font-family: var(--mono); font-size: 11px; padding: 22px 0;
+}
+
+/* ════════════════════════════════════════════
+   FOOTER
+════════════════════════════════════════════ */
+footer {
+  margin-top: 60px; padding: 26px 0;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  font-size: 10px; font-family: var(--mono);
+  color: var(--text-3); letter-spacing: .5px;
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ══════════════════════════ HEADER ══════════════════════════ -->
+  <header>
+    <div class="logo-wrap">
+      <div class="logo-icon">🎫</div>
+      <div>
+        <div class="logo-title">Help<em>Desk</em> AI</div>
+        <div class="logo-sub">Sistema Inteligente de Tickets · URL Ingeniería · IA 2026</div>
+      </div>
+    </div>
+    <div class="header-badges">
+      <div class="badge"><div class="badge-dot"></div>MODELO ACTIVO</div>
+      <div class="badge">11 CATEGORÍAS · BITEXT</div>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════ MAIN ══════════════════════════ -->
+  <div class="main-grid">
+
+    <!-- ── FORMULARIO ────────────────────────────────────────── -->
+    <div>
+      <div class="card">
+        <div class="card-head">
+          <span class="card-label">Nueva <span>Solicitud</span></span>
+          <span class="card-tag">Naïve Bayes Multinomial</span>
+        </div>
+
+        <!-- Ticket ID -->
+        <div class="field">
+          <span class="field-label">ID de Ticket (autogenerado)</span>
+          <div class="tid-row">
+            <div class="tid-display" id="tidDisplay">TKT-———</div>
+            <button class="icon-btn" onclick="genId()" title="Generar nuevo ID">↻</button>
+          </div>
+        </div>
+
+        <!-- Asunto -->
+        <div class="field">
+          <label class="field-label" for="subjectInp">Asunto</label>
+          <input type="text" id="subjectInp"
+            placeholder="Ej: Cannot access my account after password reset…">
+        </div>
+
+        <!-- Descripción -->
+        <div class="field">
+          <label class="field-label" for="descInp">Descripción del Problema</label>
+          <textarea id="descInp"
+            placeholder="Describe tu problema en inglés. El sistema clasificará automáticamente la solicitud en una de las 11 categorías de soporte disponibles…"
+            oninput="updateChar()"></textarea>
+          <div class="char-hint"><span id="charCnt">0</span> caracteres</div>
+        </div>
+
+        <button class="submit-btn" id="submitBtn" onclick="doClassify()">
+          <span class="btn-text">⚡  CLASIFICAR SOLICITUD</span>
+          <span class="btn-loader">
+            <span class="dot-pulse"></span>
+            <span class="dot-pulse"></span>
+            <span class="dot-pulse"></span>
+          </span>
+        </button>
+
+        <div class="error-box" id="errBox"></div>
+
+        <!-- Resultado -->
+        <div class="result-panel" id="resultPanel">
+          <div class="result-top">
+            <div class="result-cat-wrap">
+              <div class="result-cat-icon" id="rIcon"></div>
+              <div>
+                <div class="result-cat-name" id="rName"></div>
+                <div class="result-cat-sub">Categoría predicha con Naïve Bayes</div>
+              </div>
+            </div>
+            <div class="conf-chip" id="rConf">—</div>
+          </div>
+          <div class="result-body">
+            <div class="prob-section-title">Distribución de probabilidades por clase</div>
+            <div class="prob-list" id="probList"></div>
+            <div class="result-footer" id="rFooter"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SIDEBAR ────────────────────────────────────────────── -->
+    <div class="sidebar">
+
+      <!-- Categorías -->
+      <div class="card">
+        <div class="card-head">
+          <span class="card-label">Categorías <span>Bitext</span></span>
+          <span class="card-tag">11 clases</span>
+        </div>
+        <div class="cat-grid" id="catGrid"></div>
+      </div>
+
+      <!-- Métricas -->
+      <div class="card">
+        <div class="card-head">
+          <span class="card-label">Métricas del <span>Modelo</span></span>
+          <span class="card-tag">K-Folds CV</span>
+        </div>
+        <div class="metrics-2x2">
+          <div class="metric-tile">
+            <div class="metric-num" id="mAcc">—</div>
+            <div class="metric-name">Accuracy</div>
+          </div>
+          <div class="metric-tile">
+            <div class="metric-num" id="mF1">—</div>
+            <div class="metric-name">Macro F1</div>
+          </div>
+          <div class="metric-tile">
+            <div class="metric-num" id="mK">5</div>
+            <div class="metric-name">K-Folds</div>
+          </div>
+          <div class="metric-tile">
+            <div class="metric-num" id="mRec">—</div>
+            <div class="metric-name">Registros</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Historial -->
+      <div class="card">
+        <div class="card-head">
+          <span class="card-label">Historial <span>Tickets</span></span>
+          <span class="card-tag" id="hCount">0 tickets</span>
+        </div>
+        <div class="history-scroll" id="histScroll">
+          <div class="empty-state">Sin tickets clasificados aún</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    Universidad Rafael Landívar · Facultad de Ingeniería · Inteligencia Artificial 2026
+    &nbsp;·&nbsp; Naïve Bayes Multinomial &nbsp;·&nbsp;
+    Dataset: Bitext Customer Support LLM Chatbot Training Dataset
+  </footer>
+</div>
+
+<!-- ════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════ -->
+<script>
+"use strict";
+
+// ── Definición de las 11 categorías Bitext ──────────────────
+const CATS = {
+  "ORDER":                { label:"ORDER",                desc:"Pedidos, estado y modificaciones",       color:"#00c8f0", icon:"📦" },
+  "BILLING":              { label:"BILLING",              desc:"Facturas, recibos y estados de cuenta",  color:"#f59e0b", icon:"🧾" },
+  "SHIPPING":             { label:"SHIPPING",             desc:"Opciones y direcciones de envío",        color:"#38bdf8", icon:"🚚" },
+  "REFUND":               { label:"REFUND",               desc:"Reembolsos y devoluciones",              color:"#10b981", icon:"💰" },
+  "ACCOUNT":              { label:"ACCOUNT",              desc:"Cuenta, contraseña y perfil",            color:"#a78bfa", icon:"👤" },
+  "CONTACT":              { label:"CONTACT",              desc:"Contactar agente humano o soporte",      color:"#f97316", icon:"📞" },
+  "DELIVERY":             { label:"DELIVERY",             desc:"Seguimiento y fechas de entrega",        color:"#2dd4bf", icon:"🏠" },
+  "FEEDBACK":             { label:"FEEDBACK",             desc:"Quejas, sugerencias y reseñas",          color:"#ec4899", icon:"💬" },
+  "PAYMENT":              { label:"PAYMENT",              desc:"Métodos de pago y transacciones",        color:"#fbbf24", icon:"💳" },
+  "CANCELLATION_REQUEST": { label:"CANCELACIÓN",          desc:"Cancelar órdenes o suscripciones",       color:"#f43f5e", icon:"🚫" },
+  "TECHNICAL_SUPPORT":    { label:"SOPORTE TÉCNICO",      desc:"Errores, bugs y problemas técnicos",     color:"#6366f1", icon:"🔧" },
+};
+
+// ── Renderizar lista de categorías ─────────────────────────
+(function renderCats() {
+  const g = document.getElementById("catGrid");
+  Object.entries(CATS).forEach(([key, c]) => {
+    g.innerHTML += `
+      <div class="cat-row">
+        <div class="cat-pip" style="background:${c.color}"></div>
+        <div class="cat-data">
+          <div class="cat-name-lbl" style="color:${c.color}">${c.icon} ${c.label}</div>
+          <div class="cat-desc-lbl">${c.desc}</div>
+        </div>
+      </div>`;
+  });
+})();
+
+// ── Estado ─────────────────────────────────────────────────
+let history = [];
+let currentTid = "";
+
+// ── Inicializar ────────────────────────────────────────────
+genId();
+loadMetrics();
+
+function genId() {
+  const pool = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  currentTid = "TKT-" + Array.from({length:6}, () => pool[Math.floor(Math.random()*pool.length)]).join("");
+  document.getElementById("tidDisplay").textContent = currentTid;
+}
+
+function updateChar() {
+  document.getElementById("charCnt").textContent =
+    document.getElementById("descInp").value.length;
+}
+
+// ── Clasificar ──────────────────────────────────────────────
+async function doClassify() {
+  const subject = document.getElementById("subjectInp").value.trim();
+  const desc    = document.getElementById("descInp").value.trim();
+
+  clearError();
+  hideResult();
+
+  if (!subject && !desc) {
+    showError("Por favor ingresa al menos una descripción del problema.");
+    return;
+  }
+
+  setLoading(true);
+  try {
+    const res  = await fetch("/classify", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ subject, description: desc })
+    });
+    const data = await res.json();
+
+    if (!res.ok || data.error) { showError(data.error || "Error al clasificar."); return; }
+
+    renderResult(data);
+    pushHistory(data);
+    genId();  // nuevo ID para siguiente ticket
+
+  } catch (e) {
+    showError("No se pudo conectar con el servidor Flask. ¿Está corriendo app.py?");
+  } finally {
+    setLoading(false);
+  }
+}
+
+// ── Renderizar resultado ────────────────────────────────────
+function renderResult(data) {
+  const cat   = CATS[data.category] || { label:data.category, color:"#888", icon:"📋" };
+  const probs = data.probabilities;
+  const topP  = probs[data.category] || 0;
+
+  // Header
+  const iconEl = document.getElementById("rIcon");
+  iconEl.textContent          = cat.icon;
+  iconEl.style.background     = cat.color + "22";
+  iconEl.style.border         = `1px solid ${cat.color}44`;
+  document.getElementById("rName").textContent = cat.label;
+  document.getElementById("rName").style.color = cat.color;
+  document.getElementById("rConf").textContent = `${topP.toFixed(1)}% confianza`;
+
+  // Barras de probabilidad
+  const list   = document.getElementById("probList");
+  list.innerHTML = "";
+  const sorted = Object.entries(probs).sort((a,b) => b[1]-a[1]);
+  sorted.forEach(([k, v]) => {
+    const c  = CATS[k] || { label:k, color:"#888", icon:"" };
+    const el = document.createElement("div");
+    el.className = "prob-row";
+    el.innerHTML = `
+      <div class="prob-name" title="${c.label}">${c.icon} ${c.label}</div>
+      <div class="prob-track">
+        <div class="prob-fill" data-v="${v}" style="background:${c.color}"></div>
+      </div>
+      <div class="prob-pct">${v.toFixed(1)}%</div>`;
+    list.appendChild(el);
+  });
+
+  // Footer
+  document.getElementById("rFooter").innerHTML = `
+    <div class="result-footer-item"><b>${data.ticket_id}</b></div>
+    <div class="result-footer-item">${data.timestamp}</div>
+    <div class="result-footer-item">Algoritmo: <b>Naïve Bayes</b></div>`;
+
+  // Mostrar panel y animar barras
+  const panel = document.getElementById("resultPanel");
+  panel.style.display = "block";
+  requestAnimationFrame(() => {
+    panel.querySelectorAll(".prob-fill").forEach(el => {
+      el.style.width = el.dataset.v + "%";
+    });
+  });
+}
+
+// ── Historial ───────────────────────────────────────────────
+function pushHistory(data) {
+  history.unshift(data);
+  const scroll = document.getElementById("histScroll");
+  const countEl = document.getElementById("hCount");
+  countEl.textContent = `${history.length} ticket${history.length !== 1 ? "s" : ""}`;
+  scroll.innerHTML = "";
+  history.slice(0, 25).forEach(t => {
+    const cat  = CATS[t.category] || { label:t.category, color:"#888", icon:"📋" };
+    const item = document.createElement("div");
+    item.className = "h-item";
+    const txt = (t.description || t.subject || "—").slice(0, 52) + "…";
+    item.innerHTML = `
+      <div class="h-top">
+        <span class="h-id">${t.ticket_id}</span>
+        <span class="h-cat" style="background:${cat.color}1a;color:${cat.color}">${cat.icon} ${cat.label}</span>
+      </div>
+      <div class="h-text">${txt}</div>`;
+    scroll.appendChild(item);
+  });
+}
+
+// ── Métricas del modelo ────────────────────────────────────
+async function loadMetrics() {
+  try {
+    const res  = await fetch("/metrics");
+    if (!res.ok) return;
+    const d    = await res.json();
+    if (d.avg_accuracy)  document.getElementById("mAcc").textContent = (d.avg_accuracy * 100).toFixed(1) + "%";
+    if (d.avg_macro_f1)  document.getElementById("mF1").textContent  = (d.avg_macro_f1 * 100).toFixed(1) + "%";
+    if (d.k_folds)       document.getElementById("mK").textContent   = d.k_folds;
+    if (d.total_records) document.getElementById("mRec").textContent =
+      d.total_records >= 1000
+        ? (d.total_records / 1000).toFixed(1) + "k"
+        : d.total_records;
+  } catch (_) {}
+}
+
+// ── Helpers ─────────────────────────────────────────────────
+function showError(msg) {
+  const b = document.getElementById("errBox");
+  b.textContent = "⚠ " + msg;
+  b.style.display = "block";
+}
+function clearError() { document.getElementById("errBox").style.display = "none"; }
+function hideResult()  { document.getElementById("resultPanel").style.display = "none"; }
+function setLoading(on) {
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = on;
+  btn.classList.toggle("loading", on);
+}
+
+// Atajo teclado: Ctrl+Enter para clasificar
+document.addEventListener("keydown", e => {
+  if (e.ctrlKey && e.key === "Enter") doClassify();
+});
+</script>
+</body>
+</html>
