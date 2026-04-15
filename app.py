@@ -85,7 +85,7 @@ def classify():
             "timestamp":     "2026-04-15 10:22:00"
         }
     """
-    data        = request.get_json(force=True)
+    data = request.get_json(silent=True) or {}
     subject     = data.get("subject",     "").strip()
     description = data.get("description", "").strip()
 
@@ -142,7 +142,7 @@ def retrain():
     Si no se especifica csv_path, usa el dataset sintético.
     """
     global model, metrics_summary
-    data     = request.get_json(force=True) or {}
+    data = request.get_json(silent=True) or {}
     csv_path = data.get("csv_path")
 
     try:
