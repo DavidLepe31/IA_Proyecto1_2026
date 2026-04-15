@@ -21,6 +21,7 @@ import math
 import json
 import pickle
 import random
+import io
 from collections import defaultdict
 
 # ══════════════════════════════════════════════════════════════
@@ -473,8 +474,20 @@ def load_model(path="model.pkl"):
     Carga y deserializa un modelo previamente guardado.
     Retorna un objeto NaiveBayesClassifier listo para predecir.
     """
+    class _CompatUnpickler(pickle.Unpickler):
+        """Soporta modelos guardados cuando NaiveBayesClassifier estaba en __main__."""
+        def find_class(self, module, name):
+            if module == "__main__" and name == "NaiveBayesClassifier":
+                return NaiveBayesClassifier
+            return super().find_class(module, name)
+
     with open(path, "rb") as f:
-        model = pickle.load(f)
+        payload = f.read()
+
+    try:
+        model = pickle.loads(payload)
+    except AttributeError:
+        model = _CompatUnpickler(io.BytesIO(payload)).load()
     print(f"[✓] Modelo cargado   ← '{path}'")
     return model
 
